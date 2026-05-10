@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>منصة نما — تحليل الأهلية</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:        #0a0f0d;
+  --ink-2:      #1c2b23;
+  --ink-3:      #2e4538;
+  --sage:       #3d6e55;
+  --mint:       #52a878;
+  --lime:       #85d4a8;
+  --glow:       #b2f0cf;
+  --cream:      #f7f3ec;
+  --parchment:  #ede7da;
+  --amber:      #d4a843;
+  --amber-lt:   #f5d98a;
+  --red:        #c0392b;
+  --red-lt:     #fce8e6;
+  --white:      #ffffff;
+  --border:     rgba(61,110,85,.14);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Tajawal', sans-serif;
+  background: var(--cream);
+  color: var(--ink);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ══ NOISE TEXTURE ══ */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E");
+  background-size: 200px;
+}
+
+/* ══ HEADER ══ */
+.topbar {
+  background: var(--ink);
+  position: sticky; top: 0; z-index: 200;
+  border-bottom: 1px solid rgba(130,210,160,.18);
+}
+.topbar-inner {
+  max-width: 1440px; margin: 0 auto;
+  padding: 0 3rem;
+  height: 62px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.brand {
+  display: flex; align-items: center; gap: .9rem;
+}
+.brand-glyph {
+  width: 34px; height: 34px;
+  background: linear-gradient(135deg, var(--mint), var(--lime));
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem;
+  box-shadow: 0 0 18px rgba(82,168,120,.45);
+}
+.brand-label {
+  font-family: 'Cairo', sans-serif;
+  font-weight: 900;
+  font-size: 1.25rem;
+  color: var(--white);
+  letter-spacing: .04em;
+}
+.brand-label em {
+  color: var(--lime);
+  font-style: normal;
+}
+.topbar-right { display: flex; align-items: center; gap: 1rem; }
+.live-indicator {
+  display: flex; align-items: center; gap: .45rem;
+  font-size: .72rem; font-weight: 600; color: var(--glow);
+  letter-spacing: .06em;
+  background: rgba(130,210,160,.07);
+  border: 1px solid rgba(130,210,160,.2);
+  padding: .26rem .8rem; border-radius: 100px;
+}
+.blink { width: 6px; height: 6px; background: var(--lime); border-radius: 50%; animation: blink 2s ease infinite; }
+@keyframes blink { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.3;transform:scale(.65)} }
+.exit-btn {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,.15);
+  color: rgba(255,255,255,.5);
+  padding: .28rem .9rem; border-radius: 6px;
+  font-family: 'Tajawal', sans-serif; font-size: .78rem; cursor: pointer;
+  transition: all .2s;
+}
+.exit-btn:hover { border-color: rgba(255,255,255,.4); color: var(--white); }
+
+/* ══ PAGE SHELL ══ */
+.shell {
+  max-width: 1440px; margin: 0 auto;
+  padding: 0;
+  position: relative; z-index: 1;
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  min-height: calc(100vh - 62px);
+}
+
+/* ══ SIDEBAR ══ */
+.sidebar {
+  background: var(--ink-2);
+  border-left: 1px solid rgba(130,210,160,.1);
+  padding: 2rem 0;
+  position: sticky;
+  top: 62px;
+  height: calc(100vh - 62px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--ink-3) transparent;
+}
+.sidebar::-webkit-scrollbar { width: 4px; }
+.sidebar::-webkit-scrollbar-thumb { background: var(--ink-3); border-radius: 4px; }
+
+.sidebar-section-title {
+  font-size: .65rem;
+  font-weight: 700;
+  letter-spacing: .12em;
+  color: rgba(255,255,255,.25);
+  padding: 0 1.5rem .75rem;
+  text-transform: uppercase;
+}
+
+.farmer-nav-item {
+  display: flex; align-items: center; gap: .85rem;
+  padding: .85rem 1.5rem;
+  cursor: pointer;
+  border-right: 3px solid transparent;
+  transition: all .2s;
+  position: relative;
+}
+.farmer-nav-item:hover { background: rgba(255,255,255,.04); }
+.farmer-nav-item.active {
+  background: rgba(82,168,120,.1);
+  border-right-color: var(--mint);
+}
+
+.nav-avatar {
+  width: 36px; height: 36px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem; flex-shrink: 0;
+  border: 1.5px solid rgba(255,255,255,.07);
+}
+.nav-avatar.ok  { background: rgba(82,168,120,.18); border-color: rgba(82,168,120,.3); }
+.nav-avatar.no  { background: rgba(192,57,43,.15);  border-color: rgba(192,57,43,.25); }
+
+.nav-info { flex: 1; min-width: 0; }
+.nav-name {
+  font-size: .82rem; font-weight: 700; color: rgba(255,255,255,.85);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.farmer-nav-item.active .nav-name { color: var(--lime); }
+.nav-region {
+  font-size: .68rem; color: rgba(255,255,255,.3);
+  margin-top: .1rem;
+}
+
+.nav-status {
+  width: 22px; height: 22px; border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .7rem; font-weight: 700; flex-shrink: 0;
+}
+.nav-status.ok { background: rgba(82,168,120,.2); color: var(--lime); }
+.nav-status.no { background: rgba(192,57,43,.18); color: #f87171; }
+
+.sidebar-divider {
+  height: 1px; background: rgba(255,255,255,.07);
+  margin: 1rem 1.5rem;
+}
+
+/* ══ MAIN CONTENT ══ */
+.main { padding: 2.5rem 3rem; overflow: hidden; }
+
+/* ══ LOADER ══ */
+#loader {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  min-height: calc(100vh - 62px);
+  gap: 1.5rem;
+  grid-column: 1 / -1;
+}
+.loader-orbit {
+  width: 64px; height: 64px; position: relative;
+}
+.loader-orbit::before,
+.loader-orbit::after {
+  content: ''; position: absolute; border-radius: 50%; border: 2px solid transparent;
+}
+.loader-orbit::before {
+  inset: 0;
+  border-top-color: var(--mint);
+  animation: spin 1s linear infinite;
+}
+.loader-orbit::after {
+  inset: 8px;
+  border-right-color: var(--amber);
+  animation: spin .7s linear infinite reverse;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loader-text { text-align: center; }
+.loader-text h3 { font-size: 1rem; font-weight: 700; color: var(--ink-2); margin-bottom: .3rem; }
+.loader-text p  { font-size: .8rem; color: #6b8a78; }
+.loader-chips { display: flex; gap: .4rem; justify-content: center; margin-top: .75rem; }
+.lchip {
+  background: var(--ink-2); color: var(--glow);
+  padding: .2rem .65rem; border-radius: 100px; font-size: .7rem; font-weight: 600;
+  border: 1px solid rgba(130,210,160,.2);
+  animation: popIn .5s ease both;
+}
+.lchip:nth-child(1){animation-delay:.35s}
+.lchip:nth-child(2){animation-delay:.65s}
+.lchip:nth-child(3){animation-delay:.95s}
+@keyframes popIn { from{opacity:0;transform:scale(.8) translateY(6px)} to{opacity:1;transform:scale(1) translateY(0)} }
+
+/* ══ FARMER PANEL ══ */
+.panel { display: none; animation: fadeSlide .35s ease both; }
+.panel.active { display: block; }
+@keyframes fadeSlide { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+/* ── HERO STRIP ── */
+.hero {
+  background: var(--ink);
+  border-radius: 20px;
+  padding: 2rem 2.5rem;
+  margin-bottom: 2rem;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 1.5rem;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 60% 80% at 100% 50%, rgba(82,168,120,.15) 0%, transparent 65%),
+              radial-gradient(ellipse 40% 60% at 0% 0%, rgba(212,168,67,.08) 0%, transparent 55%);
+}
+.hero-deco {
+  position: absolute; left: 2rem; top: 50%; transform: translateY(-50%);
+  font-size: 9rem; opacity: .04; pointer-events: none; line-height: 1;
+}
+.hero-left { position: relative; z-index: 1; }
+.hero-eyebrow {
+  font-size: .68rem; font-weight: 700; letter-spacing: .1em;
+  color: var(--mint); margin-bottom: .5rem;
+  text-transform: uppercase;
+}
+.hero-name {
+  font-family: 'Cairo', sans-serif;
+  font-size: 1.7rem; font-weight: 900;
+  color: var(--white);
+  line-height: 1.1; margin-bottom: .6rem;
+}
+.hero-meta {
+  display: flex; flex-wrap: wrap; gap: .5rem;
+}
+.meta-chip {
+  display: flex; align-items: center; gap: .3rem;
+  background: rgba(255,255,255,.07);
+  border: 1px solid rgba(255,255,255,.1);
+  color: rgba(255,255,255,.65);
+  padding: .22rem .65rem; border-radius: 7px;
+  font-size: .72rem; font-weight: 500;
+}
+.meta-chip .ic { font-size: .8rem; }
+
+.hero-right { position: relative; z-index: 1; }
+.status-globe {
+  width: 100px; height: 100px; border-radius: 50%;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: .2rem;
+  border: 2px solid;
+  text-align: center;
+}
+.status-globe.ok {
+  background: rgba(82,168,120,.15);
+  border-color: rgba(82,168,120,.4);
+  box-shadow: 0 0 30px rgba(82,168,120,.2);
+}
+.status-globe.no {
+  background: rgba(192,57,43,.12);
+  border-color: rgba(192,57,43,.3);
+  box-shadow: 0 0 30px rgba(192,57,43,.1);
+}
+.globe-num {
+  font-family: 'Cairo', sans-serif;
+  font-size: 1.8rem; font-weight: 900; line-height: 1;
+}
+.status-globe.ok .globe-num { color: var(--lime); }
+.status-globe.no .globe-num { color: #f87171; }
+.globe-label { font-size: .62rem; font-weight: 600; }
+.status-globe.ok .globe-label { color: rgba(178,240,207,.7); }
+.status-globe.no .globe-label { color: rgba(248,113,113,.7); }
+
+/* ── CONDITION BADGES (hero) ── */
+.cond-badges {
+  display: flex; flex-wrap: wrap; gap: .5rem;
+  margin-top: 1rem; position: relative; z-index: 1;
+}
+.cond-badge {
+  display: flex; align-items: center; gap: .35rem;
+  padding: .28rem .75rem; border-radius: 8px;
+  font-size: .71rem; font-weight: 600;
+  border: 1px solid;
+}
+.cond-badge.pass {
+  background: rgba(82,168,120,.12);
+  border-color: rgba(82,168,120,.3);
+  color: var(--lime);
+}
+.cond-badge.fail {
+  background: rgba(192,57,43,.1);
+  border-color: rgba(192,57,43,.25);
+  color: #f87171;
+}
+.cond-badge .cb-icon { font-size: .8rem; }
+
+/* ── STATS ROW ── */
+.stats-row {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 1rem; margin-bottom: 2rem;
+}
+.stat-box {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1.2rem 1.4rem;
+  display: flex; align-items: center; gap: 1rem;
+  transition: transform .2s, box-shadow .2s;
+}
+.stat-box:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(10,15,13,.08); }
+.stat-ico {
+  width: 44px; height: 44px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.3rem; flex-shrink: 0;
+}
+.stat-ico.teal  { background: rgba(61,110,85,.08); }
+.stat-ico.green { background: rgba(82,168,120,.1); }
+.stat-ico.amber { background: rgba(212,168,67,.1); }
+.stat-num { font-family: 'Cairo', sans-serif; font-size: 1.75rem; font-weight: 900; line-height: 1; color: var(--ink); }
+.stat-lbl { font-size: .72rem; color: #6b8a78; margin-top: .15rem; }
+
+/* ── SECTION HEADER ── */
+.sec-title {
+  display: flex; align-items: center; gap: .75rem;
+  margin-bottom: 1.25rem;
+}
+.sec-line {
+  flex: 1; height: 1px; background: var(--border);
+}
+.sec-tag {
+  display: flex; align-items: center; gap: .5rem;
+  font-family: 'Cairo', sans-serif;
+  font-size: .8rem; font-weight: 700;
+  letter-spacing: .04em;
+  white-space: nowrap;
+}
+.sec-tag.green { color: var(--sage); }
+.sec-tag.red   { color: var(--red); }
+.sec-count {
+  width: 22px; height: 22px; border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .72rem; font-weight: 700;
+}
+.sec-count.g { background: var(--sage); color: #fff; }
+.sec-count.r { background: var(--red);  color: #fff; }
+
+/* ── SERVICE GRID ── */
+.svc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2.5rem;
+}
+
+/* ── SERVICE CARD ── */
+.svc-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex; flex-direction: column;
+  transition: transform .22s, box-shadow .22s;
+  animation: cardIn .4s ease both;
+}
+.svc-card:hover { transform: translateY(-4px); box-shadow: 0 12px 36px rgba(10,15,13,.1); }
+@keyframes cardIn { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+
+.card-top {
+  padding: 1.25rem 1.25rem .9rem;
+  flex: 1; display: flex; flex-direction: column;
+}
+.card-icon-row {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  margin-bottom: .75rem;
+}
+.card-emoji-wrap {
+  width: 46px; height: 46px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.5rem;
+}
+.svc-card.ok .card-emoji-wrap { background: rgba(82,168,120,.1); }
+.svc-card.no .card-emoji-wrap { background: rgba(192,57,43,.07); }
+
+.card-status-pip {
+  width: 28px; height: 28px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .75rem;
+}
+.svc-card.ok .card-status-pip { background: rgba(82,168,120,.1); color: var(--mint); }
+.svc-card.no .card-status-pip { background: rgba(192,57,43,.08); color: var(--red); }
+
+.card-title {
+  font-family: 'Cairo', sans-serif;
+  font-size: .92rem; font-weight: 800;
+  color: var(--ink); line-height: 1.3; margin-bottom: .25rem;
+}
+.card-sub { font-size: .7rem; color: #6b8a78; font-weight: 500; margin-bottom: .7rem; }
+.card-desc { font-size: .78rem; color: #5a7060; line-height: 1.7; flex: 1; margin-bottom: .9rem; }
+
+/* met conditions inside ok card */
+.met-list { list-style: none; display: flex; flex-direction: column; gap: .3rem; margin-bottom: .9rem; }
+.met-list li {
+  display: flex; align-items: center; gap: .4rem;
+  font-size: .73rem; color: var(--sage);
+  background: rgba(61,110,85,.06); border-radius: 6px;
+  padding: .22rem .55rem;
+}
+.met-list li::before { content: '✓'; font-weight: 800; color: var(--mint); flex-shrink: 0; }
+
+/* missing list inside no card */
+.miss-block {
+  background: #fffcf4;
+  border: 1px solid rgba(212,168,67,.25);
+  border-radius: 10px; padding: .75rem .9rem; margin-bottom: .9rem;
+}
+.miss-block-title {
+  font-size: .68rem; font-weight: 800; color: #8a6200;
+  letter-spacing: .04em; margin-bottom: .45rem;
+  display: flex; align-items: center; gap: .3rem;
+}
+.miss-list { list-style: none; display: flex; flex-direction: column; gap: .35rem; }
+.miss-list li {
+  display: flex; align-items: flex-start; gap: .4rem;
+  font-size: .75rem; color: #6b4a00; line-height: 1.5;
+}
+.miss-dot { width: 5px; height: 5px; background: var(--amber); border-radius: 50%; flex-shrink: 0; margin-top: 6px; }
+.entity-tag {
+  display: inline-flex; align-items: center;
+  background: rgba(212,168,67,.15);
+  border: 1px solid rgba(212,168,67,.35);
+  color: #7a5000; border-radius: 4px;
+  padding: .05rem .35rem; font-size: .65rem; font-weight: 700;
+  margin-right: .2rem; white-space: nowrap;
+}
+
+/* card footer */
+.card-foot {
+  padding: .9rem 1.25rem;
+  border-top: 1px solid var(--border);
+  display: flex; flex-direction: column; gap: .45rem;
+}
+.btn {
+  display: flex; align-items: center; justify-content: center; gap: .45rem;
+  padding: .55rem 1rem; border-radius: 9px;
+  font-family: 'Tajawal', sans-serif; font-size: .8rem; font-weight: 700;
+  cursor: pointer; border: none; text-decoration: none;
+  transition: all .2s; width: 100%;
+}
+.btn-solid {
+  background: linear-gradient(135deg, var(--mint) 0%, var(--sage) 100%);
+  color: var(--white);
+  box-shadow: 0 3px 10px rgba(61,110,85,.25);
+}
+.btn-solid:hover { box-shadow: 0 5px 18px rgba(61,110,85,.4); transform: translateY(-1px); }
+.btn-ghost {
+  background: transparent; color: var(--sage);
+  border: 1.5px solid rgba(61,110,85,.3);
+}
+.btn-ghost:hover { background: rgba(61,110,85,.05); }
+.btn-nav {
+  background: var(--ink-2); color: var(--glow);
+  font-size: .75rem;
+}
+.btn-nav:hover { background: var(--ink-3); }
+
+.empty-msg {
+  color: #6b8a78; font-size: .85rem; padding: 1rem 0;
+  display: flex; align-items: center; gap: .5rem;
+}
+
+/* ── SPLIT CONDITIONS (met + missing) ── */
+.cond-split-wrap {
+  display: flex; flex-direction: column; gap: .6rem;
+  margin-bottom: .9rem;
+}
+.cond-split {
+  border-radius: 10px; padding: .7rem .9rem;
+}
+.cond-split.met-split {
+  background: #f0faf5;
+  border: 1px solid rgba(82,168,120,.22);
+}
+.cond-split.miss-split {
+  background: #fffcf4;
+  border: 1px solid rgba(212,168,67,.28);
+}
+.cond-split-title {
+  font-size: .68rem; font-weight: 800;
+  letter-spacing: .04em; margin-bottom: .4rem;
+  display: flex; align-items: center; gap: .3rem;
+}
+.cond-split-title.g { color: var(--sage); }
+.cond-split-title.r { color: #8a6200; }
+
+/* ══ RESPONSIVE ══ */
+@media (max-width: 1100px) {
+  .shell { grid-template-columns: 240px 1fr; }
+  .main { padding: 2rem 2rem; }
+}
+@media (max-width: 860px) {
+  .shell { grid-template-columns: 1fr; }
+  .sidebar {
+    position: static; height: auto;
+    display: flex; flex-direction: row; overflow-x: auto;
+    padding: .75rem 1rem;
+    border-bottom: 1px solid rgba(130,210,160,.15);
+    border-left: none;
+    scrollbar-width: none;
+  }
+  .sidebar::-webkit-scrollbar { display: none; }
+  .sidebar-section-title { display: none; }
+  .sidebar-divider { display: none; }
+  .farmer-nav-item {
+    border-right: none; border-bottom: 3px solid transparent;
+    flex-direction: column; padding: .5rem .75rem; min-width: 80px;
+    align-items: center; text-align: center;
+  }
+  .farmer-nav-item.active { border-bottom-color: var(--mint); }
+  .nav-info { display: none; }
+  .nav-status { display: none; }
+  .nav-avatar { width: 32px; height: 32px; font-size: .95rem; }
+  .main { padding: 1.5rem 1rem; }
+  .hero { grid-template-columns: 1fr; }
+  .hero-right { display: none; }
+  .stats-row { grid-template-columns: repeat(3, 1fr); gap: .6rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <div class="brand-glyph">🌱</div>
+      <div class="brand-label">منصة <em>نما</em></div>
+    </div>
+    <div class="topbar-right">
+      <div class="live-indicator"><div class="blink"></div>ربط لحظي بـ حصر · ري · نما</div>
+      <button class="exit-btn">تسجيل الخروج</button>
+    </div>
+  </div>
+</header>
+
+<div class="shell" id="shell">
+
+  <!-- LOADER -->
+  <div id="loader">
+    <div class="loader-orbit"></div>
+    <div class="loader-text">
+      <h3>تحليل الملفات الزراعية...</h3>
+      <p>سحب بيانات ٦ مزارعين من المنصات الحكومية</p>
+      <div class="loader-chips">
+        <div class="lchip">🗂 حصر</div>
+        <div class="lchip">💧 ري</div>
+        <div class="lchip">🌾 نما</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ══════════════════════════════════════════
+   DATA
+══════════════════════════════════════════ */
+const FARMERS = [
+  /* ✅ مستوفون */
+  {
+    id:'f1', emoji:'👨‍🌾', name:'سعد بن محمد الغامدي', region:'القصيم',
+    idNum:'10XX1234',
+    hasCertRi: true, hasLicenseNama: true, palmCount: 310, landArea: 38,
+  },
+  {
+    id:'f2', emoji:'🧑‍🌾', name:'عبدالرحمن العتيبي', region:'المدينة المنورة',
+    idNum:'10XX5678',
+    hasCertRi: true, hasLicenseNama: true, palmCount: 480, landArea: 44,
+  },
+  {
+    id:'f3', emoji:'👩‍🌾', name:'فاطمة سالم الزهراني', region:'الأحساء',
+    idNum:'20XX9012',
+    hasCertRi: true, hasLicenseNama: true, palmCount: 200, landArea: 22,
+  },
+  /* ❌ مستوفون جزئياً */
+  {
+    id:'f4', emoji:'👨‍🌾', name:'خالد ناصر الدوسري', region:'الرياض',
+    idNum:'10XX3456',
+    hasCertRi: false, hasLicenseNama: false, palmCount: 150, landArea: 30,
+  },
+  {
+    id:'f5', emoji:'🧑‍🌾', name:'عمر يوسف الحربي', region:'تبوك',
+    idNum:'10XX7890',
+    hasCertRi: true, hasLicenseNama: true, palmCount: 640, landArea: 73,
+  },
+  {
+    id:'f6', emoji:'👩‍🌾', name:'نورة عبدالله القحطاني', region:'نجران',
+    idNum:'20XX4321',
+    hasCertRi: true, hasLicenseNama: false, palmCount: 390, landArea: 58,
+  },
+];
+
+function buildConds(f) {
+  return {
+    certRi:      { label:'شهادة ري سارية', shortLabel:'شهادة ري', check:()=>f.hasCertRi,
+                   failMsg:'لا توجد شهادة ري سارية', entity:'منصة ري', fixLink:'#ray' },
+    licenseNama: { label:'رخصة الأنشطة من نما', shortLabel:'رخصة نما', check:()=>f.hasLicenseNama,
+                   failMsg:'رخصة الأنشطة غير مستخرجة', entity:'منصة نما', fixLink:'#nama' },
+    palmCount:   { label:`النخيل ≤ ٥٠٠ (الحالي: ${f.palmCount})`, shortLabel:`النخيل: ${f.palmCount}`, check:()=>f.palmCount<=500,
+                   failMsg:`عدد النخيل (${f.palmCount}) تجاوز الحد الأقصى ٥٠٠`, entity:'منصة حصر', fixLink:'#hasr' },
+    landArea:    { label:`المساحة ≤ ٥٠ دونم (الحالي: ${f.landArea})`, shortLabel:`المساحة: ${f.landArea}د`, check:()=>f.landArea<=50,
+                   failMsg:`المساحة (${f.landArea} دونم) تتجاوز الحد ٥٠ دونماً`, entity:'منصة حصر', fixLink:'#hasr' },
+  };
+}
+
+const SERVICES = [
+  { id:1, emoji:'🤝', title:'الإعانة الزراعية لصغار المزارعين', sub:'دعم نقدي وعيني مباشر',
+    desc:'دعم حكومي مباشر للمزارعين الصغار لتغطية تكاليف الإنتاج وتطوير المزرعة الموسمية.',
+    condKeys:['certRi','licenseNama','landArea'] },
+  { id:2, emoji:'🌴', title:'برنامج شراء التمور', sub:'ضمان تسويقي بأسعار مضمونة',
+    desc:'ضمان حكومي لمنتجي التمور يشمل الشراء بأسعار مضمونة والتصنيف والتغليف والتوزيع.',
+    condKeys:['certRi','licenseNama','palmCount','landArea'] },
+  { id:3, emoji:'🌱', title:'دعم مستلزمات الإنتاج', sub:'بذور وأسمدة ومبيدات مدعومة',
+    desc:'توفير مستلزمات الإنتاج الزراعي المدعومة من بذور معتمدة وأسمدة عضوية بأسعار تفضيلية.',
+    condKeys:['certRi','licenseNama'] },
+  { id:4, emoji:'💧', title:'دعم أنظمة الري الحديثة', sub:'ري بالتنقيط والرش',
+    desc:'دعم مالي حتى ٥٠٪ لتركيب شبكات الري الحديثة الموفرة للمياه في المزارع المؤهلة.',
+    condKeys:['certRi','licenseNama','landArea'] },
+  { id:5, emoji:'🚜', title:'تمويل الآليات الزراعية', sub:'قروض ميسرة بأرباح مخفضة',
+    desc:'تمويل ميسر بأرباح مخفضة لاقتناء المعدات والمكائن الحديثة للأنشطة المرخصة.',
+    condKeys:['certRi','licenseNama'] },
+  { id:6, emoji:'📦', title:'دعم التخزين والتبريد', sub:'حفظ المحاصيل وتقليل الهدر',
+    desc:'دعم لإنشاء غرف التبريد ومخازن المنتجات للحد من الهدر وضمان جودة المنتج للتسويق.',
+    condKeys:['licenseNama','landArea'] },
+  { id:7, emoji:'🛡️', title:'برنامج التأمين الزراعي', sub:'حماية من المخاطر والكوارث',
+    desc:'تغطية تأمينية مدعومة تحمي المزارعين من الآفات والكوارث الطبيعية وتقلبات الأسعار.',
+    condKeys:['certRi','licenseNama','landArea'] },
+];
+
+/* ══════════════════════════════════════════
+   BUILD UI
+══════════════════════════════════════════ */
+function analyzeFarmer(f) {
+  const conds = buildConds(f);
+  const eligible = [], ineligible = [];
+  SERVICES.forEach(s => {
+    const missing = s.condKeys.map(k=>conds[k]).filter(c=>!c.check());
+    missing.length===0 ? eligible.push({...s}) : ineligible.push({...s, missing});
+  });
+  return { eligible, ineligible, conds };
+}
+
+function buildPanel(f) {
+  const { eligible, ineligible, conds } = analyzeFarmer(f);
+  const isOk = ineligible.length === 0;
+
+  /* hero condition badges */
+  const badgesHtml = Object.entries(conds).map(([k,c]) => {
+    const pass = c.check();
+    return `<div class="cond-badge ${pass?'pass':'fail'}">
+      <span class="cb-icon">${pass?'✓':'✗'}</span>${c.shortLabel}
+    </div>`;
+  }).join('');
+
+  /* status globe */
+  const globeHtml = `
+    <div class="status-globe ${isOk?'ok':'no'}">
+      <div class="globe-num">${eligible.length}</div>
+      <div class="globe-label">خدمة<br>متاحة</div>
+    </div>`;
+
+  /* eligible cards */
+  let okHtml = '';
+  if (eligible.length===0) {
+    okHtml = `<div class="empty-msg">⚠ لا توجد خدمات متاحة حالياً</div>`;
+  } else {
+    eligible.forEach((s,i) => {
+      const metItems = s.condKeys.map(k=>`<li>${conds[k].label}</li>`).join('');
+      okHtml += `
+      <div class="svc-card ok" style="animation-delay:${.08+i*.06}s">
+        <div class="card-top">
+          <div class="card-icon-row">
+            <div class="card-emoji-wrap">${s.emoji}</div>
+            <div class="card-status-pip">✓</div>
+          </div>
+          <div class="card-title">${s.title}</div>
+          <div class="card-sub">${s.sub}</div>
+          <div class="card-desc">${s.desc}</div>
+          <ul class="met-list">${metItems}</ul>
+        </div>
+        <div class="card-foot">
+          <button class="btn btn-solid">تقديم مباشر ←</button>
+          <a href="#" class="btn btn-ghost">تفاصيل الخدمة</a>
+        </div>
+      </div>`;
+    });
+  }
+
+  /* ineligible cards */
+  let noHtml = '';
+  if (ineligible.length===0) {
+    noHtml = `<div class="empty-msg">✅ جميع الخدمات متاحة</div>`;
+  } else {
+    ineligible.forEach((s,i) => {
+      // الشروط المحققة
+      const metKeys   = s.condKeys.filter(k =>  conds[k].check());
+      const missKeys  = s.condKeys.filter(k => !conds[k].check());
+
+      const metItemsHtml = metKeys.length
+        ? `<div class="cond-split met-split">
+             <div class="cond-split-title g"><span>✓</span> مستوفٍ</div>
+             <ul class="met-list">${metKeys.map(k=>`<li>${conds[k].label}</li>`).join('')}</ul>
+           </div>`
+        : '';
+
+      const missItemsHtml = missKeys.length
+        ? `<div class="cond-split miss-split">
+             <div class="cond-split-title r"><span>✗</span> غير مستوفٍ</div>
+             <ul class="miss-list">${missKeys.map(k=>`<li>
+               <span class="miss-dot"></span>
+               <span>${conds[k].failMsg} <span class="entity-tag">${conds[k].entity}</span></span>
+             </li>`).join('')}</ul>
+           </div>`
+        : '';
+
+      const seen = new Set();
+      const fixBtns = missKeys
+        .filter(k=>{ const e=conds[k].entity; if(seen.has(e))return false; seen.add(e); return true; })
+        .map(k=>`<a href="${conds[k].fixLink}" class="btn btn-nav" target="_blank">🔗 استكمال في ${conds[k].entity}</a>`)
+        .join('');
+
+      noHtml += `
+      <div class="svc-card no" style="animation-delay:${.08+i*.06}s">
+        <div class="card-top">
+          <div class="card-icon-row">
+            <div class="card-emoji-wrap">${s.emoji}</div>
+            <div class="card-status-pip">!</div>
+          </div>
+          <div class="card-title">${s.title}</div>
+          <div class="card-sub">${s.sub}</div>
+          <div class="card-desc">${s.desc}</div>
+          <div class="cond-split-wrap">
+            ${metItemsHtml}
+            ${missItemsHtml}
+          </div>
+        </div>
+        <div class="card-foot">${fixBtns}</div>
+      </div>`;
+    });
+  }
+
+  const div = document.createElement('div');
+  div.className = 'panel';
+  div.id = `panel-${f.id}`;
+  div.innerHTML = `
+    <div class="hero">
+      <div class="hero-deco">🌴</div>
+      <div class="hero-left">
+        <div class="hero-eyebrow">ملف المزارع — ${isOk ? 'مستوفٍ لجميع الشروط ✅' : 'مستوفٍ جزئياً ⚠'}</div>
+        <div class="hero-name">${f.emoji} ${f.name}</div>
+        <div class="hero-meta">
+          <div class="meta-chip"><span class="ic">🪪</span>${f.idNum}</div>
+          <div class="meta-chip"><span class="ic">📍</span>${f.region}</div>
+          <div class="meta-chip"><span class="ic">🌴</span>${f.palmCount.toLocaleString('ar-SA')} نخلة</div>
+          <div class="meta-chip"><span class="ic">🗺</span>${f.landArea} دونم</div>
+        </div>
+        <div class="cond-badges">${badgesHtml}</div>
+      </div>
+      <div class="hero-right">${globeHtml}</div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-box">
+        <div class="stat-ico teal">📋</div>
+        <div><div class="stat-num">${SERVICES.length}</div><div class="stat-lbl">إجمالي الخدمات</div></div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-ico green">✅</div>
+        <div><div class="stat-num">${eligible.length}</div><div class="stat-lbl">متاحة للتقديم</div></div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-ico amber">⏳</div>
+        <div><div class="stat-num">${ineligible.length}</div><div class="stat-lbl">تتطلب استكمالاً</div></div>
+      </div>
+    </div>
+
+    <div class="sec-title">
+      <div class="sec-tag green">✅ الخدمات المتاحة للتقديم</div>
+      <div class="sec-count g">${eligible.length}</div>
+      <div class="sec-line"></div>
+    </div>
+    <div class="svc-grid">${okHtml}</div>
+
+    <div class="sec-title">
+      <div class="sec-tag red">🚧 تتطلب استكمال البيانات</div>
+      <div class="sec-count r">${ineligible.length}</div>
+      <div class="sec-line"></div>
+    </div>
+    <div class="svc-grid">${noHtml}</div>
+  `;
+  return div;
+}
+
+function switchTo(id) {
+  document.querySelectorAll('.farmer-nav-item').forEach(b=>b.classList.toggle('active', b.dataset.id===id));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active', p.id===`panel-${id}`));
+}
+
+function init() {
+  const shell = document.getElementById('shell');
+  document.getElementById('loader').remove();
+
+  /* sidebar */
+  const sidebar = document.createElement('nav');
+  sidebar.className = 'sidebar';
+
+  const titleOk = document.createElement('div');
+  titleOk.className = 'sidebar-section-title';
+  titleOk.textContent = 'مستوفون ✅';
+  sidebar.appendChild(titleOk);
+
+  /* main */
+  const main = document.createElement('main');
+  main.className = 'main';
+
+  FARMERS.forEach((f, idx) => {
+    if (idx === 3) {
+      const div = document.createElement('div');
+      div.className = 'sidebar-divider';
+      sidebar.appendChild(div);
+      const titleNo = document.createElement('div');
+      titleNo.className = 'sidebar-section-title';
+      titleNo.textContent = 'مستوفون جزئياً ⚠';
+      sidebar.appendChild(titleNo);
+    }
+
+    const { ineligible } = analyzeFarmer(f);
+    const isOk = ineligible.length === 0;
+
+    /* nav item */
+    const nav = document.createElement('div');
+    nav.className = `farmer-nav-item${idx===0?' active':''}`;
+    nav.dataset.id = f.id;
+    nav.innerHTML = `
+      <div class="nav-avatar ${isOk?'ok':'no'}">${f.emoji}</div>
+      <div class="nav-info">
+        <div class="nav-name">${f.name}</div>
+        <div class="nav-region">${f.region}</div>
+      </div>
+      <div class="nav-status ${isOk?'ok':'no'}">${isOk?'✓':'!'}</div>
+    `;
+    nav.addEventListener('click', ()=>switchTo(f.id));
+    sidebar.appendChild(nav);
+
+    /* panel */
+    const panel = buildPanel(f);
+    if (idx===0) panel.classList.add('active');
+    main.appendChild(panel);
+  });
+
+  shell.appendChild(sidebar);
+  shell.appendChild(main);
+}
+
+setTimeout(init, 1800);
+</script>
+</body>
+</html>
